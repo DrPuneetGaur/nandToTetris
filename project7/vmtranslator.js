@@ -104,20 +104,20 @@ function handleArithmeticOperations(command){
             return handleAddCommand();
         case ARITHMETIC_OPERATIONS_MAP.SUB:
             return handleSubtractCommand();
-        // case ARITHMETIC_OPERATIONS_MAP.EQ:
-        //     return handleEqualCommand();
-        // case ARITHMETIC_OPERATIONS_MAP.LT:
-        //     return handleLessThanCommand();
-        // case ARITHMETIC_OPERATIONS_MAP.GT:
-        //     return handleGreaterThanCommand();
-        // case ARITHMETIC_OPERATIONS_MAP.NEG:
-        //     return handleNegateCommand();
-        // case ARITHMETIC_OPERATIONS_MAP.AND:
-        //     return handleAndCommand();
-        // case ARITHMETIC_OPERATIONS_MAP.OR:
-        //     return handleOrCommand();
-        // case ARITHMETIC_OPERATIONS_MAP.NOT:
-        //     return handleNotCommand();
+        case ARITHMETIC_OPERATIONS_MAP.EQ:
+            return handleEqualCommand();
+        case ARITHMETIC_OPERATIONS_MAP.LT:
+            return handleLessThanCommand();
+        case ARITHMETIC_OPERATIONS_MAP.GT:
+            return handleGreaterThanCommand();
+        case ARITHMETIC_OPERATIONS_MAP.NEG:
+            return handleNegateCommand();
+        case ARITHMETIC_OPERATIONS_MAP.AND:
+            return handleAndCommand();
+        case ARITHMETIC_OPERATIONS_MAP.OR:
+            return handleOrCommand();
+        case ARITHMETIC_OPERATIONS_MAP.NOT:
+            return handleNotCommand();
     }
     return assemblyCommandToReturn;
 }
@@ -144,6 +144,78 @@ function handleSubtractCommand(){
             M=D
             @SP
             M=M-1`)
+}
+
+let labelCounter = 0;
+
+function handleEqualCommand(){
+    return handleBinaryCommand('JEQ');
+}
+
+function handleLessThanCommand(){
+    return handleBinaryCommand('JLT');
+}
+
+function handleGreaterThanCommand(){
+    return handleBinaryCommand('JGT');
+}
+
+function handleBinaryCommand(assemblyComp){
+    const trueLabel = `TRUE_${labelCounter}`;
+    const falseLabel = `FALSE_${labelCounter}`;
+    const continueLabel = `CONTINUE_${labelCounter}`;
+    labelCounter += 1;
+    return (`${pushFromStackToDRegisterV2()}
+            @SP
+            A=M-1
+            D=M-D
+            @${trueLabel}
+            D;${assemblyComp}
+            @${falseLabel}
+            0;JMP
+            (${trueLabel})
+            @SP
+            A=M-1
+            M=-1
+            @${continueLabel}
+            0;JMP
+            (${falseLabel})
+            @SP
+            A=M-1
+            M=0
+            @${continueLabel}
+            0;JMP
+            (${continueLabel})`)
+}
+
+function handleNegateCommand(){
+    return (
+        `${handleUnaryCommand()}
+        M=-M`);
+}
+
+function handleAndCommand(){
+    return (`${pushFromStackToDRegisterV2()}
+            @SP
+            A=M-1
+            M=D&M`)
+}
+
+function handleOrCommand(){
+    return (`${pushFromStackToDRegisterV2()}
+            @SP
+            A=M-1
+            M=D|M`)
+}
+
+function handleNotCommand(){
+    return (`${handleUnaryCommand()}
+            M=!M`)
+}
+
+function handleUnaryCommand(assemblyComp){
+    return (`@SP
+            A=M-1`)
 }
 
 function handlePushCommand(memorySegment, index, file){
